@@ -1,7 +1,12 @@
+from os import add_dll_directory
 import swisseph as swe
 import streamlit as st
 import pandas as pd
 import datetime
+from geopy.geocoders import Nominatim
+import random
+import string
+
 swe.set_sid_mode(swe.SIDM_KRISHNAMURTI)
 
 zodiac = {0:'Aries', 1:'Taurus', 2:'Gemini', 3:'Cancer', 4:'Leo', 5:'Virgo', 6:'Libra', 7:'Scorpius', 8:'Sagittarius', 9:'Capricorn', 10:'Aquarius', 11:'Pisces'}
@@ -30,10 +35,8 @@ def sub_lord_(p):
     a = len(sublord)
     bt = (360/27)/120
     hi = 0.0
-    print(r)
     for i in range(a):
         hi = hi + subs[(i+pl)%a] * bt
-        print(hi)
         if r < hi:
             return pl_name[(i+pl)%a]
 def planet_house(p, jd, lat, lon):
@@ -147,6 +150,21 @@ def aspects_planets2houses(jd, lat, lon):
         table.append(ht)
     return table
 
+def time_period(t1,t2, lord):
+    pl_name = list(sublord.keys())
+    subs = list(sublord.values())
+    a = len(sublord)
+    tp = (t2-t1)/120
+    pl=pl_name.index(lord)
+    hi = t1
+    out = []
+    for j in range(a):
+        lw = hi
+        hi = hi + subs[(j+pl)%a] * tp
+        lord1 = pl_name[(j+pl)%a]
+        out.append([lw, hi, lord1])
+    return out
+
 st.set_page_config(
         page_title="Horoscope",
         page_icon="🖖",
@@ -162,8 +180,10 @@ d = st.sidebar.date_input("When's your birthday", datetime.date(1995, 9, 27), da
 year = d.year
 month = d.month
 date = d.day
-lat = float(st.sidebar.text_input('Latitude', '21.9320'))
-lon = float(st.sidebar.text_input('Longitude', '86.7466'))
+lat = float(st.sidebar.text_input('latitude', '21.9320'))
+lon = float(st.sidebar.text_input('longitude', '86.7466'))
+
+
 tz = st.sidebar.slider('time zone', -24.0, 24.0, 5.5, 0.5)
 t = st.sidebar.title('When did you come to earth')
 hour = st.sidebar.slider('Hour', 0, 24, 23, 1)
@@ -180,3 +200,18 @@ df3 = pd.DataFrame(aspects_planets2houses(jd, lat, lon), columns = ['Sun','Moon'
 st.dataframe(df3)
 df4 = pd.DataFrame(aspects_planets2planets(jd), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'])
 st.dataframe(df4)
+t2 = 2098
+t1 = 1978
+lord = 'Rahu'
+
+mdl = st.selectbox(
+     'Maha Dasa Lord',
+     (time_period(t1, t2, lord)))
+
+adl = st.selectbox(
+     'Antar Dasa Lord',
+     (time_period(mdl[0], mdl[1], mdl[2])))
+
+pdl = st.selectbox(
+     'Pratyantar Dasa Lord',
+     (time_period(adl[0], adl[1], adl[2])))
