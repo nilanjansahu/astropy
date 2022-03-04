@@ -1,9 +1,7 @@
-from os import add_dll_directory
 import swisseph as swe
 import streamlit as st
 import pandas as pd
 import datetime
-from geopy.geocoders import Nominatim
 import random
 import string
 
