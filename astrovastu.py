@@ -2,6 +2,7 @@ import swisseph as swe
 import streamlit as st
 import pandas as pd
 import datetime
+from geopy.geocoders import Nominatim
 import random
 import string
 
@@ -148,7 +149,9 @@ def aspects_planets2houses(jd, lat, lon):
         table.append(ht)
     return table
 
-def time_period(t1,t2, lord):
+def time_period(t1,t2, lord, tz):
+    t1 = local_time_to_jd(t1[0], t1[1], t1[2], 0, 0, 0, timezone = tz)
+    t2 = local_time_to_jd(t2[0], t2[1], t2[2], 0, 0, 0, timezone = tz)
     pl_name = list(sublord.keys())
     subs = list(sublord.values())
     a = len(sublord)
@@ -160,7 +163,7 @@ def time_period(t1,t2, lord):
         lw = hi
         hi = hi + subs[(j+pl)%a] * tp
         lord1 = pl_name[(j+pl)%a]
-        out.append([lw, hi, lord1])
+        out.append([swe.revjul(lw)[0:3], swe.revjul(hi)[0:3], lord1])
     return out
 
 st.set_page_config(
@@ -181,7 +184,17 @@ date = d.day
 lat = float(st.sidebar.text_input('latitude', '21.9320'))
 lon = float(st.sidebar.text_input('longitude', '86.7466'))
 
+'''address = st.sidebar.text_input('City', 'Baripada')
+letters = string.ascii_lowercase
+a = ''.join(random.choice(letters) for i in range(10))
 
+geolocator = Nominatim(user_agent=a)
+location = geolocator.geocode(address)
+
+st.sidebar.caption('Latitude '+str(location.latitude))
+st.sidebar.caption('Longitude '+str(location.longitude))
+lat = location.latitude
+lon = location.longitude'''
 tz = st.sidebar.slider('time zone', -24.0, 24.0, 5.5, 0.5)
 t = st.sidebar.title('When did you come to earth')
 hour = st.sidebar.slider('Hour', 0, 24, 23, 1)
@@ -198,18 +211,22 @@ df3 = pd.DataFrame(aspects_planets2houses(jd, lat, lon), columns = ['Sun','Moon'
 st.dataframe(df3)
 df4 = pd.DataFrame(aspects_planets2planets(jd), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'])
 st.dataframe(df4)
-t2 = 2098
-t1 = 1978
-lord = 'Rahu'
+
+moon = swe.calc_ut(jd, swe.MOON, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
+lord = df1[df1["PLANETS"]=='moon']["NAKSHATRA LORD"].values[0]
+
+t1 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365)
+t2 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365 + 120*365)
+
 
 mdl = st.selectbox(
      'Maha Dasa Lord',
-     (time_period(t1, t2, lord)))
+     (time_period(t1[0:3],t2[0:3],lord,tz)))
 
 adl = st.selectbox(
      'Antar Dasa Lord',
-     (time_period(mdl[0], mdl[1], mdl[2])))
+     (time_period(mdl[0], mdl[1], mdl[2], tz)))
 
 pdl = st.selectbox(
      'Pratyantar Dasa Lord',
-     (time_period(adl[0], adl[1], adl[2])))
+     (time_period(adl[0], adl[1], adl[2], tz)))
