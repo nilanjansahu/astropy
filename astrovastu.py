@@ -82,7 +82,7 @@ def planets(jd, lat, lon):
     saturn = swe.calc_ut(jd, swe.SATURN, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
     rahu = swe.calc_ut(jd, swe.MEAN_NODE, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
     ketu = (swe.calc_ut(jd, swe.MEAN_NODE, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0] + 180) % 360
-    planets = {'sun':sun, 'moon':moon, 'mercury':mercury, 'venus':venus, 'mars':mars, 'jupiter':jupiter, 'saturn':saturn, 'rahu':rahu, 'ketu':ketu}
+    planets = {'Sun':sun, 'Moon':moon, 'Mercury':mercury, 'Venus':venus, 'Mars':mars, 'Jupiter':jupiter, 'Saturn':saturn, 'Rahu':rahu, 'Ketu':ketu}
     planet_list = []
     for pl in planets:
         p = planets[pl]
@@ -121,7 +121,7 @@ def aspects_planets2planets(jd):
     saturn = swe.calc_ut(jd, swe.SATURN, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
     rahu = swe.calc_ut(jd, swe.MEAN_NODE, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
     ketu = (swe.calc_ut(jd, swe.MEAN_NODE, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0] + 180) % 360
-    planets = {'sun':sun, 'moon':moon, 'mercury':mercury, 'venus':venus, 'mars':mars, 'jupiter':jupiter, 'saturn':saturn, 'rahu':rahu, 'ketu':ketu}
+    planets = {'Sun':sun, 'Moon':moon, 'Mercury':mercury, 'Venus':venus, 'Mars':mars, 'Jupiter':jupiter, 'Saturn':saturn, 'Rahu':rahu, 'Ketu':ketu}
     table = []
     for h in planets:
         ht = []
@@ -140,7 +140,7 @@ def aspects_planets2houses(jd, lat, lon):
     saturn = swe.calc_ut(jd, swe.SATURN, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
     rahu = swe.calc_ut(jd, swe.MEAN_NODE, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
     ketu = (swe.calc_ut(jd, swe.MEAN_NODE, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0] + 180) % 360
-    planets = {'sun':sun, 'moon':moon, 'mercury':mercury, 'venus':venus, 'mars':mars, 'jupiter':jupiter, 'saturn':saturn, 'rahu':rahu, 'ketu':ketu}
+    planets = {'Sun':sun, 'Moon':moon, 'Mercury':mercury, 'Venus':venus, 'Mars':mars, 'Jupiter':jupiter, 'Saturn':saturn, 'Rahu':rahu, 'Ketu':ketu}
     table = []
     for h in houses:
         ht = []
@@ -213,7 +213,7 @@ df4 = pd.DataFrame(aspects_planets2planets(jd), columns = ['Sun','Moon','Mercury
 st.dataframe(df4)
 
 moon = swe.calc_ut(jd, swe.MOON, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
-lord = df1[df1["PLANETS"]=='moon']["NAKSHATRA LORD"].values[0]
+lord = df1[df1["PLANETS"]=='Moon']["NAKSHATRA LORD"].values[0]
 
 t1 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365)
 t2 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365 + 120*365)
@@ -222,11 +222,23 @@ t2 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sub
 mdl = st.selectbox(
      'Maha Dasa Lord',
      (time_period(t1[0:3],t2[0:3],lord,tz)))
+     
+st.table(df1[df1["PLANETS"]==mdl[2]])
+st.table(df2[df2["RASI LORD"]==mdl[2]])
+st.table(df3[mdl[2]].replace('', float('NaN'), regex = True).dropna())
+st.table(df4[mdl[2]].replace('', float('NaN'), regex = True).dropna())
 
 adl = st.selectbox(
      'Antar Dasa Lord',
      (time_period(mdl[0], mdl[1], mdl[2], tz)))
-
+st.table(df1[df1["PLANETS"]==adl[2]])
+st.table(df2[df2["RASI LORD"]==adl[2]])
+st.table(df3[adl[2]].replace('', float('NaN'), regex = True).dropna())
+st.table(df4[adl[2]].replace('', float('NaN'), regex = True).dropna())
 pdl = st.selectbox(
      'Pratyantar Dasa Lord',
      (time_period(adl[0], adl[1], adl[2], tz)))
+st.table(df1[df1["PLANETS"]==pdl[2]])
+st.table(df2[df2["RASI LORD"]==pdl[2]])
+st.table(df3[pdl[2]].replace('', float('NaN'), regex = True).dropna())
+st.table(df4[pdl[2]].replace('', float('NaN'), regex = True).dropna())
