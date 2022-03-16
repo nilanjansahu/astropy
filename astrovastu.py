@@ -2,7 +2,7 @@ import swisseph as swe
 import streamlit as st
 import pandas as pd
 import datetime
-from geopy.geocoders import Nominatim
+#from geopy.geocoders import Nominatim
 import random
 import string
 
