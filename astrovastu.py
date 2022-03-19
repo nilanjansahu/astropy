@@ -204,8 +204,14 @@ minutes = st.sidebar.slider('Minutes', 0, 59, 17, 1)
 seconds = st.sidebar.slider('Seconds', 0, 59, 0, 1)
 
 jd = local_time_to_jd(year, month, date, hour, minutes, seconds, timezone = tz)
+df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
+
 st.subheader('Bhaba Chart')
-h, a = swe.houses_ex(jd, lat, lon, hsys = b'P',flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)
+hous, asm = swe.houses_ex(jd, lat, lon, hsys = b'P',flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)
+
+h = []
+for a in hous:
+    h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['HOUSES'] == hous.index(a)+1]['PLANETS'].values]))
 
 st.markdown('''<svg height="400" width="400">
   <line x1="0" y1="0" x2="400" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
@@ -214,23 +220,50 @@ st.markdown('''<svg height="400" width="400">
   <line x1="0" y1="200" x2="200" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="200" y1="400" x2="400" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="200" y1="0" x2="400" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <text x="200" y="100">''' + str(int(h[0]/30)+1) + '''</text>
-  <text x="90" y="40">''' + str(int(h[1]/30)+1) + '''</text>
-  <text x="30" y="100">''' + str(int(h[2]/30)+1) + '''</text>
-  <text x="100" y="200">''' + str(int(h[3]/30)+1) + '''</text>
-  <text x="30" y="300">''' + str(int(h[4]/30)+1) + '''</text>
-  <text x="100" y="350">''' + str(int(h[5]/30)+1) + '''</text>
-  <text x="200" y="300">''' + str(int(h[6]/30)+1) + '''</text>
-  <text x="300" y="350">''' + str(int(h[7]/30)+1) + '''</text>
-  <text x="350" y="300">''' + str(int(h[8]/30)+1) + '''</text>
-  <text x="300" y="200">''' + str(int(h[9]/30)+1) + '''</text>
-  <text x="350" y="100">''' + str(int(h[10]/30)+1) + '''</text>
-  <text x="300" y="50">''' + str(int(h[11]/30)+1) + '''</text>
-
+  <text x="200" y="100" text-anchor="middle">''' + h[0] + '''</text>
+  <text x="90" y="40" text-anchor="middle">''' + h[1] +'''</text>
+  <text x="30" y="100" text-anchor="middle">''' + h[2] + '''</text>
+  <text x="100" y="200" text-anchor="middle">''' + h[3] + '''</text>
+  <text x="30" y="300" text-anchor="middle">''' + h[4] + '''</text>
+  <text x="100" y="350" text-anchor="middle">''' + h[5] + '''</text>
+  <text x="200" y="300" text-anchor="middle">''' + h[6] + '''</text>
+  <text x="300" y="350" text-anchor="middle">''' + h[7] + '''</text>
+  <text x="350" y="300" text-anchor="middle">''' + h[8] + '''</text>
+  <text x="300" y="200" text-anchor="middle">''' + h[9] + '''</text>
+  <text x="350" y="100" text-anchor="middle">''' + h[10] + '''</text>
+  <text x="300" y="50" text-anchor="middle">''' + h[11] + '''</text>
 </svg>''',unsafe_allow_html=True)
 
+st.subheader('Rasi Chart')
+h = []
+for a in hous:
+    h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['RASI'] == zodiac[int(a/30)]]['PLANETS'].values]))
+
+st.markdown('''<svg height="400" width="400">
+  <line x1="0" y1="0" x2="400" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="400" y1="0" x2="0" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="200" y1="0" x2="0" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0" y1="200" x2="200" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="200" y1="400" x2="400" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="200" y1="0" x2="400" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <text x="200" y="100" text-anchor="middle">''' + h[0] + '''</text>
+  <text x="90" y="40" text-anchor="middle">''' + h[1] +'''</text>
+  <text x="30" y="100" text-anchor="middle">''' + h[2] + '''</text>
+  <text x="100" y="200" text-anchor="middle">''' + h[3] + '''</text>
+  <text x="30" y="300" text-anchor="middle">''' + h[4] + '''</text>
+  <text x="100" y="350" text-anchor="middle">''' + h[5] + '''</text>
+  <text x="200" y="300" text-anchor="middle">''' + h[6] + '''</text>
+  <text x="300" y="350" text-anchor="middle">''' + h[7] + '''</text>
+  <text x="350" y="300" text-anchor="middle">''' + h[8] + '''</text>
+  <text x="300" y="200" text-anchor="middle">''' + h[9] + '''</text>
+  <text x="350" y="100" text-anchor="middle">''' + h[10] + '''</text>
+  <text x="300" y="50" text-anchor="middle">''' + h[11] + '''</text>
+</svg>''',unsafe_allow_html=True)
+
+
+
 st.subheader('Tables')
-df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
+
 st.dataframe(df1)
 df2 = pd.DataFrame(houses(jd, lat, lon), columns = ['HOUSES','RASI','RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
 st.dataframe(df2)
