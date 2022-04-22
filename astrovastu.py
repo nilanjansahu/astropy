@@ -279,6 +279,8 @@ lord = df1[df1["PLANETS"]=='Moon']["NAKSHATRA LORD"].values[0]
 
 t1 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365)
 t2 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365 + 120*365)
+
+#script
 def script_table():
     planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu']
     script_tab = []
@@ -297,13 +299,28 @@ def script_table():
             star_ = ''
         planet_nl = df1[df1["PLANETS"]==planet]['NAKSHATRA LORD'].values[0]
         result = planet_nl+' '+str(df1[df1["PLANETS"]==planet_nl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet_nl]["HOUSES"].values)
+        if planet_nl == 'Rahu':
+            result = planet_nl+' '+str(df1[df1["PLANETS"]==planet_nl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==df1[df1["PLANETS"]=='Ketu']["RASI LORD"].values[0]]["HOUSES"].values)
+        
+        if planet_nl == 'Ketu':
+            result = planet_nl+' '+str(df1[df1["PLANETS"]==planet_nl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==df1[df1["PLANETS"]=='Ketu']["RASI LORD"].values[0]]["HOUSES"].values)
         
         planet_sl = df1[df1["PLANETS"]==planet]['SUB LORD'].values[0]
         verifier = planet_sl+' '+str(df1[df1["PLANETS"]==planet_sl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet_sl]["HOUSES"].values)
+        if planet_sl == 'Rahu':
+            verifier = planet_sl+' '+str(df1[df1["PLANETS"]==planet_sl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==df1[df1["PLANETS"]=='Rahu']["RASI LORD"].values[0]]["HOUSES"].values)
+        
+        if planet_sl == 'Ketu':
+            verifier = planet_sl+' '+str(df1[df1["PLANETS"]==planet_sl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==df1[df1["PLANETS"]=='Rahu']["RASI LORD"].values[0]]["HOUSES"].values)
         
         planet_nl_sl = df1[df1["PLANETS"]==planet_nl]['SUB LORD'].values[0]
         result_verifier = planet_nl_sl+' '+str(df1[df1["PLANETS"]==planet_nl_sl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet_nl_sl]["HOUSES"].values)
-
+        if planet_nl_sl == 'Rahu':
+            result_verifier = planet_nl_sl+' '+str(df1[df1["PLANETS"]==planet_nl_sl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==df1[df1["PLANETS"]=='Rahu']["RASI LORD"].values[0]]["HOUSES"].values)
+        
+        if planet_nl_sl == 'Ketu':
+            result_verifier = planet_nl_sl+' '+str(df1[df1["PLANETS"]==planet_nl_sl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==df1[df1["PLANETS"]=='Ketu']["RASI LORD"].values[0]]["HOUSES"].values)
+        
         script_tab.append([planet,
                              source,
                              star_,
@@ -312,8 +329,9 @@ def script_table():
                              result_verifier                            
         ])
     return script_tab
+
 df5 = pd.DataFrame(script_table(), columns = ['Planet','Source','Star_','Result','Verifier','result_verifier '])
-st.table(df5)
+st.dataframe(df5)
 st.subheader('Timeline')
 with st.expander("Maha Dasa lord"):
     mdl = st.selectbox(
