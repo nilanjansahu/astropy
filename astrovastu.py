@@ -263,16 +263,16 @@ col2.markdown('''<svg height="400" width="400">
 </svg>''',unsafe_allow_html=True)
 
 
-
 st.subheader('Tables')
+expander = st.expander("Reference Tables")
 
-st.dataframe(df1)
+expander.table(df1)
 df2 = pd.DataFrame(houses(jd, lat, lon), columns = ['HOUSES','RASI','RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
-st.dataframe(df2)
+expander.table(df2)
 df3 = pd.DataFrame(aspects_planets2houses(jd, lat, lon), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = range(1,13))
-st.dataframe(df3)
+expander.table(df3)
 df4 = pd.DataFrame(aspects_planets2planets(jd), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'])
-st.dataframe(df4)
+expander.table(df4)
 
 moon = swe.calc_ut(jd, swe.MOON, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
 lord = df1[df1["PLANETS"]=='Moon']["NAKSHATRA LORD"].values[0]
@@ -280,6 +280,7 @@ lord = df1[df1["PLANETS"]=='Moon']["NAKSHATRA LORD"].values[0]
 t1 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365)
 t2 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365 + 120*365)
 
+#script
 #script
 def script_table():
     planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu']
@@ -297,6 +298,11 @@ def script_table():
             star_ = 'no star'
         else:
             star_ = ''
+        adtn_h = ''
+        if star_ == 'no star':
+            adtn_h = ','.join(df2[df2['RASI LORD']==planet]["HOUSES"].values)
+        else:
+            adtn_h = ''
         planet_nl = df1[df1["PLANETS"]==planet]['NAKSHATRA LORD'].values[0]
         result = planet_nl+' '+str(df1[df1["PLANETS"]==planet_nl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet_nl]["HOUSES"].values)
         if planet_nl == 'Rahu':
@@ -324,14 +330,15 @@ def script_table():
         script_tab.append([planet,
                              source,
                              star_,
+                             adtn_h,
                              result,
                              verifier,
                              result_verifier                            
         ])
     return script_tab
-
-df5 = pd.DataFrame(script_table(), columns = ['Planet','Source','Star_','Result','Verifier','result_verifier '])
-st.dataframe(df5)
+expander1 = st.expander("Script Table")
+df5 = pd.DataFrame(script_table(), columns = ['Planet','Source','Star_','Additional House','Result','Verifier','result_verifier '])
+expander1.dataframe(df5)
 st.subheader('Timeline')
 with st.expander("Maha Dasa lord"):
     mdl = st.selectbox(
