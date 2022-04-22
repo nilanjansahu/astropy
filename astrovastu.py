@@ -169,7 +169,8 @@ def time_period(t1,t2, lord, tz):
 st.set_page_config(
         page_title="Horoscope",
         page_icon="🖖",
-        
+        layout="wide",
+        initial_sidebar_state="expanded"
     )
 
 st.markdown(""" <style>
@@ -205,15 +206,16 @@ seconds = st.sidebar.slider('Seconds', 0, 59, 0, 1)
 
 jd = local_time_to_jd(year, month, date, hour, minutes, seconds, timezone = tz)
 df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
+col1, col2 = st.columns(2)
 
-st.subheader('Bhaba Chart')
+col1.subheader('Bhaba Chart')
 hous, asm = swe.houses_ex(jd, lat, lon, hsys = b'P',flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)
 
 h = []
 for a in hous:
     h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['HOUSES'] == hous.index(a)+1]['PLANETS'].values]))
 
-st.markdown('''<svg height="400" width="400">
+col1.markdown('''<svg height="400" width="400">
   <line x1="0" y1="0" x2="400" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="400" y1="0" x2="0" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="200" y1="0" x2="0" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
@@ -234,12 +236,12 @@ st.markdown('''<svg height="400" width="400">
   <text x="300" y="50" text-anchor="middle">''' + h[11] + '''</text>
 </svg>''',unsafe_allow_html=True)
 
-st.subheader('Rasi Chart')
+col2.subheader('Rasi Chart')
 h = []
 for a in hous:
     h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['RASI'] == zodiac[int(a/30)]]['PLANETS'].values]))
 
-st.markdown('''<svg height="400" width="400">
+col2.markdown('''<svg height="400" width="400">
   <line x1="0" y1="0" x2="400" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="400" y1="0" x2="0" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="200" y1="0" x2="0" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
@@ -277,28 +279,64 @@ lord = df1[df1["PLANETS"]=='Moon']["NAKSHATRA LORD"].values[0]
 
 t1 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365)
 t2 = swe.revjul(jd + (sublord[lord])*365*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365 + 120*365)
+def script_table():
+    planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu']
+    script_tab = []
+    for planet in planets:
+        source = planet+' '+str(df1[df1["PLANETS"]==planet]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet]["HOUSES"].values)
+        if planet == 'Rahu':
+            source = planet+' '+str(df1[df1["PLANETS"]==planet]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==df1[df1["PLANETS"]=='Rahu']["RASI LORD"].values[0]]["HOUSES"].values)
+        
+        if planet == 'Ketu':
+            source = planet+' '+str(df1[df1["PLANETS"]==planet]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==df1[df1["PLANETS"]=='Ketu']["RASI LORD"].values[0]]["HOUSES"].values)
+        
+        star_ = ''
+        if planet not in df1['NAKSHATRA LORD'].values:
+            star_ = 'no star'
+        else:
+            star_ = ''
+        planet_nl = df1[df1["PLANETS"]==planet]['NAKSHATRA LORD'].values[0]
+        result = planet_nl+' '+str(df1[df1["PLANETS"]==planet_nl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet_nl]["HOUSES"].values)
+        
+        planet_sl = df1[df1["PLANETS"]==planet]['SUB LORD'].values[0]
+        verifier = planet_sl+' '+str(df1[df1["PLANETS"]==planet_sl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet_sl]["HOUSES"].values)
+        
+        planet_nl_sl = df1[df1["PLANETS"]==planet_nl]['SUB LORD'].values[0]
+        result_verifier = planet_nl_sl+' '+str(df1[df1["PLANETS"]==planet_nl_sl]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet_nl_sl]["HOUSES"].values)
 
+        script_tab.append([planet,
+                             source,
+                             star_,
+                             result,
+                             verifier,
+                             result_verifier                            
+        ])
+    return script_tab
+df5 = pd.DataFrame(script_table(), columns = ['Planet','Source','Star_','Result','Verifier','result_verifier '])
+st.table(df5)
 st.subheader('Timeline')
-mdl = st.selectbox(
-     'Maha Dasa Lord',
-     (time_period(t1[0:3],t2[0:3],lord,tz)))
-     
-st.table(df1[df1["PLANETS"]==mdl[2]])
-st.table(df2[df2["RASI LORD"]==mdl[2]])
-st.table(df3[mdl[2]].replace('', float('NaN'), regex = True).dropna())
-st.table(df4[mdl[2]].replace('', float('NaN'), regex = True).dropna())
-
-adl = st.selectbox(
-     'Antar Dasa Lord',
-     (time_period(mdl[0], mdl[1], mdl[2], tz)))
-st.table(df1[df1["PLANETS"]==adl[2]])
-st.table(df2[df2["RASI LORD"]==adl[2]])
-st.table(df3[adl[2]].replace('', float('NaN'), regex = True).dropna())
-st.table(df4[adl[2]].replace('', float('NaN'), regex = True).dropna())
-pdl = st.selectbox(
-     'Pratyantar Dasa Lord',
-     (time_period(adl[0], adl[1], adl[2], tz)))
-st.table(df1[df1["PLANETS"]==pdl[2]])
-st.table(df2[df2["RASI LORD"]==pdl[2]])
-st.table(df3[pdl[2]].replace('', float('NaN'), regex = True).dropna())
-st.table(df4[pdl[2]].replace('', float('NaN'), regex = True).dropna())
+with st.expander("Maha Dasa lord"):
+    mdl = st.selectbox(
+        '',
+        (time_period(t1[0:3],t2[0:3],lord,tz)))
+        
+    st.table(df1[df1["PLANETS"]==mdl[2]])
+    st.table(df2[df2["RASI LORD"]==mdl[2]])
+    st.table(df3[mdl[2]].replace('', float('NaN'), regex = True).dropna())
+    st.table(df4[mdl[2]].replace('', float('NaN'), regex = True).dropna())
+with st.expander("Antar Dasa lord"):
+    adl = st.selectbox(
+        '',
+        (time_period(mdl[0], mdl[1], mdl[2], tz)))
+    st.table(df1[df1["PLANETS"]==adl[2]])
+    st.table(df2[df2["RASI LORD"]==adl[2]])
+    st.table(df3[adl[2]].replace('', float('NaN'), regex = True).dropna())
+    st.table(df4[adl[2]].replace('', float('NaN'), regex = True).dropna())
+with st.expander("Pratyantar Dasa lord"):
+    pdl = st.selectbox(
+        '',
+        (time_period(adl[0], adl[1], adl[2], tz)))
+    st.table(df1[df1["PLANETS"]==pdl[2]])
+    st.table(df2[df2["RASI LORD"]==pdl[2]])
+    st.table(df3[pdl[2]].replace('', float('NaN'), regex = True).dropna())
+    st.table(df4[pdl[2]].replace('', float('NaN'), regex = True).dropna())
