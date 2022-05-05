@@ -88,7 +88,8 @@ def planets(jd, lat, lon):
         p = planets[pl]
         planet_list.append([pl,
                            planet_house(p, jd, lat, lon),
-                           rasi(p), 
+                           rasi(p),
+                           str("{:.2f}".format(p%30)),
                            rasi_lord(rasi(p)),
                            nakshatra_(p),
                            nakshatra_lord_(nakshatra_(p)),
@@ -105,6 +106,7 @@ def houses(jd, lat, lon):
         i += 1
         house_list.append([str(i),
                           rasi(f),
+                          str("{:.2f}".format(f%30)),
                           rasi_lord(rasi(f)),  
                           nakshatra_(f),
                           nakshatra_lord_(nakshatra_(f)),
@@ -205,7 +207,7 @@ minutes = st.sidebar.slider('Minutes', 0, 59, 17, 1)
 seconds = st.sidebar.slider('Seconds', 0, 59, 0, 1)
 
 jd = local_time_to_jd(year, month, date, hour, minutes, seconds, timezone = tz)
-df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
+df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI','DEGREES', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
 col1, col2 = st.columns(2)
 
 col1.subheader('Bhaba Chart')
@@ -215,25 +217,29 @@ h = []
 for a in hous:
     h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['HOUSES'] == hous.index(a)+1]['PLANETS'].values]))
 
-col1.markdown('''<svg height="400" width="400">
-  <line x1="0" y1="0" x2="400" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="400" y1="0" x2="0" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="200" y1="0" x2="0" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0" y1="200" x2="200" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="200" y1="400" x2="400" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="200" y1="0" x2="400" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <text x="200" y="100" text-anchor="middle">''' + h[0] + '''</text>
-  <text x="90" y="40" text-anchor="middle">''' + h[1] +'''</text>
-  <text x="30" y="100" text-anchor="middle">''' + h[2] + '''</text>
-  <text x="100" y="200" text-anchor="middle">''' + h[3] + '''</text>
-  <text x="30" y="300" text-anchor="middle">''' + h[4] + '''</text>
-  <text x="100" y="350" text-anchor="middle">''' + h[5] + '''</text>
-  <text x="200" y="300" text-anchor="middle">''' + h[6] + '''</text>
-  <text x="300" y="350" text-anchor="middle">''' + h[7] + '''</text>
-  <text x="350" y="300" text-anchor="middle">''' + h[8] + '''</text>
-  <text x="300" y="200" text-anchor="middle">''' + h[9] + '''</text>
-  <text x="350" y="100" text-anchor="middle">''' + h[10] + '''</text>
-  <text x="300" y="50" text-anchor="middle">''' + h[11] + '''</text>
+col1.markdown('''<svg height="350" width="350">
+  <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="100%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="50%" y1="0%" x2="0%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0%" y1="50%" x2="50%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="50%" y1="100%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="50%" y1="0%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0%" y1="0%" x2="100%" y2="0%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="100%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0%" y1="100%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <text x="50%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[0] + '''</text>
+  <text x="22.5%" y="10%"  font-size="80%"  text-anchor="middle">''' + h[1] +'''</text>
+  <text x="10%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[2] + '''</text>
+  <text x="25%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[3] + '''</text>
+  <text x="10%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[4] + '''</text>
+  <text x="25%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[5] + '''</text>
+  <text x="50%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[6] + '''</text>
+  <text x="75%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[7] + '''</text>
+  <text x="87.5%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[8] + '''</text>
+  <text x="75%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[9] + '''</text>
+  <text x="87.5%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[10] + '''</text>
+  <text x="75%" y="12.5%"  font-size="80%"  text-anchor="middle">''' + h[11] + '''</text>
 </svg>''',unsafe_allow_html=True)
 
 col2.subheader('Rasi Chart')
@@ -241,25 +247,29 @@ h = []
 for a in hous:
     h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['RASI'] == zodiac[int(a/30)]]['PLANETS'].values]))
 
-col2.markdown('''<svg height="400" width="400">
-  <line x1="0" y1="0" x2="400" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="400" y1="0" x2="0" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="200" y1="0" x2="0" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0" y1="200" x2="200" y2="400" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="200" y1="400" x2="400" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="200" y1="0" x2="400" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <text x="200" y="100" text-anchor="middle">''' + h[0] + '''</text>
-  <text x="90" y="40" text-anchor="middle">''' + h[1] +'''</text>
-  <text x="30" y="100" text-anchor="middle">''' + h[2] + '''</text>
-  <text x="100" y="200" text-anchor="middle">''' + h[3] + '''</text>
-  <text x="30" y="300" text-anchor="middle">''' + h[4] + '''</text>
-  <text x="100" y="350" text-anchor="middle">''' + h[5] + '''</text>
-  <text x="200" y="300" text-anchor="middle">''' + h[6] + '''</text>
-  <text x="300" y="350" text-anchor="middle">''' + h[7] + '''</text>
-  <text x="350" y="300" text-anchor="middle">''' + h[8] + '''</text>
-  <text x="300" y="200" text-anchor="middle">''' + h[9] + '''</text>
-  <text x="350" y="100" text-anchor="middle">''' + h[10] + '''</text>
-  <text x="300" y="50" text-anchor="middle">''' + h[11] + '''</text>
+col2.markdown('''<svg height="350" width="350">
+  <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="100%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="50%" y1="0%" x2="0%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0%" y1="50%" x2="50%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="50%" y1="100%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="50%" y1="0%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0%" y1="0%" x2="100%" y2="0%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="100%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <line x1="0%" y1="100%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+  <text x="50%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[0] + '''</text>
+  <text x="22.5%" y="10%"  font-size="80%"  text-anchor="middle">''' + h[1] +'''</text>
+  <text x="10%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[2] + '''</text>
+  <text x="25%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[3] + '''</text>
+  <text x="10%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[4] + '''</text>
+  <text x="25%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[5] + '''</text>
+  <text x="50%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[6] + '''</text>
+  <text x="75%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[7] + '''</text>
+  <text x="87.5%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[8] + '''</text>
+  <text x="75%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[9] + '''</text>
+  <text x="87.5%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[10] + '''</text>
+  <text x="75%" y="12.5%"  font-size="80%"  text-anchor="middle">''' + h[11] + '''</text>
 </svg>''',unsafe_allow_html=True)
 
 
@@ -267,7 +277,7 @@ st.subheader('Tables')
 expander = st.expander("Reference Tables")
 
 expander.table(df1)
-df2 = pd.DataFrame(houses(jd, lat, lon), columns = ['HOUSES','RASI','RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
+df2 = pd.DataFrame(houses(jd, lat, lon), columns = ['HOUSES','RASI','DEGREES','RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
 expander.table(df2)
 df3 = pd.DataFrame(aspects_planets2houses(jd, lat, lon), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = range(1,13))
 expander.table(df3)
@@ -336,6 +346,7 @@ def script_table():
                              result_verifier                            
         ])
     return script_tab
+
 expander1 = st.expander("Script Table")
 df5 = pd.DataFrame(script_table(), columns = ['Planet','Source','Star_','Additional House','Result','Verifier','result_verifier '])
 expander1.dataframe(df5)
