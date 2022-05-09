@@ -16,7 +16,13 @@ sublord = {'Ketu':7, 'Venus':20, 'Sun':6, 'Moon':10, 'Mars':7, 'Rahu':18, 'Jupit
 def local_time_to_jd(year, month, day, hour, minutes, seconds, timezone):
     y, m, d, h, mnt, s = swe.utc_time_zone(year, month, day, hour, minutes, seconds, timezone)
     return swe.utc_to_jd(y, m, d, h, mnt, s, flag = swe.GREG_CAL)[1]
-
+def decdeg2dms(dd):
+   is_positive = dd >= 0
+   dd = abs(dd)
+   minutes,seconds = divmod(dd*3600,60)
+   degrees,minutes = divmod(minutes,60)
+   degrees = degrees if is_positive else -degrees
+   return ':'.join([str(int(degrees)),str(int(minutes)),str(int(seconds))])
 def rasi(p):
     return zodiac[int(p/30)]
 def rasi_lord(p):
@@ -48,9 +54,9 @@ def planet_house(p, jd, lat, lon):
             if houses[i] < p or p < houses[(i+1) % 11]:
                 return i+1
 def aspects(p1,p2):
-    angle = abs(swe.difdeg2n(p1,p2))
+    angle = swe.difdeg2n(p1,p2)
     deviation = 4
-    if angle < deviation and p1!=p2:
+    if angle < deviation and p1!=p2 and angle>0:
         return '0'
     elif angle < (30+deviation) and angle > (30-deviation):
         return '30'
@@ -89,7 +95,7 @@ def planets(jd, lat, lon):
         planet_list.append([pl,
                            planet_house(p, jd, lat, lon),
                            rasi(p),
-                           str("{:.2f}".format(p%30)),
+                           decdeg2dms(p%30),
                            rasi_lord(rasi(p)),
                            nakshatra_(p),
                            nakshatra_lord_(nakshatra_(p)),
@@ -106,7 +112,7 @@ def houses(jd, lat, lon):
         i += 1
         house_list.append([str(i),
                           rasi(f),
-                          str("{:.2f}".format(f%30)),
+                          decdeg2dms(f%30),
                           rasi_lord(rasi(f)),  
                           nakshatra_(f),
                           nakshatra_lord_(nakshatra_(f)),
@@ -151,9 +157,12 @@ def aspects_planets2houses(jd, lat, lon):
         table.append(ht)
     return table
 
-def time_period(t1,t2, lord, tz):
-    t1 = local_time_to_jd(t1[0], t1[1], t1[2], 0, 0, 0, timezone = tz)
-    t2 = local_time_to_jd(t2[0], t2[1], t2[2], 0, 0, 0, timezone = tz)
+def time_period(inp, tz):
+    t1, t2, lord = inp.split('\n')
+    t1 = t1.split('-')
+    t2 = t2.split('-')
+    t1 = local_time_to_jd(int(t1[0]), int(t1[1]), int(t1[2]), 0, 0, 0, timezone = tz)
+    t2 = local_time_to_jd(int(t2[0]), int(t2[1]), int(t2[2]), 0, 0, 0, timezone = tz)
     pl_name = list(sublord.keys())
     subs = list(sublord.values())
     a = len(sublord)
@@ -165,7 +174,9 @@ def time_period(t1,t2, lord, tz):
         lw = hi
         hi = hi + subs[(j+pl)%a] * tp
         lord1 = pl_name[(j+pl)%a]
-        out.append([swe.revjul(lw)[0:3], swe.revjul(hi)[0:3], lord1])
+        out.append('\n'.join(['-'.join(map(str, swe.revjul(lw)[0:3])),
+                    '-'.join(map(str, swe.revjul(hi)[0:3])),
+                    lord1]))
     return out
 
 st.set_page_config(
@@ -202,9 +213,12 @@ except:
     pass
 tz = st.sidebar.slider('time zone', -24.0, 24.0, 5.5, 0.5)
 t = st.sidebar.title('When did you come to earth')
-hour = st.sidebar.slider('Hour', 0, 24, 23, 1)
-minutes = st.sidebar.slider('Minutes', 0, 59, 17, 1)
-seconds = st.sidebar.slider('Seconds', 0, 59, 0, 1)
+#hour = st.sidebar.slider('Hour', 0, 24, 23, 1)
+#minutes = st.sidebar.slider('Minutes', 0, 59, 17, 1)
+#seconds = st.sidebar.slider('Seconds', 0, 59, 0, 1)'''
+hour = int(st.sidebar.text_input('Hour', 23))
+minutes = int(st.sidebar.text_input('Minutes',17))
+seconds = int(st.sidebar.text_input('Seconds',0))
 
 jd = local_time_to_jd(year, month, date, hour, minutes, seconds, timezone = tz)
 df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI','DEGREES', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
@@ -274,15 +288,15 @@ col2.markdown('''<svg height="350" width="350">
 
 
 st.subheader('Tables')
-expander = st.expander("Reference Tables")
 
-expander.table(df1)
+
 df2 = pd.DataFrame(houses(jd, lat, lon), columns = ['HOUSES','RASI','DEGREES','RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
-expander.table(df2)
+
 df3 = pd.DataFrame(aspects_planets2houses(jd, lat, lon), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = range(1,13))
-expander.table(df3)
+
 df4 = pd.DataFrame(aspects_planets2planets(jd), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'])
-expander.table(df4)
+
+
 
 moon = swe.calc_ut(jd, swe.MOON, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
 lord = df1[df1["PLANETS"]=='Moon']["NAKSHATRA LORD"].values[0]
@@ -350,32 +364,43 @@ def script_table():
 expander1 = st.expander("Script Table")
 df5 = pd.DataFrame(script_table(), columns = ['Planet','Source','Star_','Additional House','Result','Verifier','result_verifier '])
 expander1.dataframe(df5)
+expander = st.expander("Reference Tables")
+expander.subheader('Houses')
+expander.table(df1)
+expander.subheader('Planets')
+expander.table(df2)
+expander.subheader('Aspects Planet to Houses')
+expander.table(df3)
+expander.subheader('Aspects Planet to Planets')
+expander.table(df4)
 st.subheader('Timeline')
 with st.expander("Maha Dasa lord"):
     mdl = st.selectbox(
         '',
-        (time_period(t1[0:3],t2[0:3],lord,tz)))
-        
-    st.table(df1[df1["PLANETS"]==mdl[2]])
-    st.table(df2[df2["RASI LORD"]==mdl[2]])
-    st.table(df5[df5["Planet"]==mdl[2]])
-    st.table(df3[mdl[2]].replace('', float('NaN'), regex = True).dropna())
-    st.table(df4[mdl[2]].replace('', float('NaN'), regex = True).dropna())
+        (time_period('\n'.join(['-'.join(map(str,t1[0:3])),'-'.join(map(str,t2[0:3])),lord]),tz)))
+    lord=mdl.split('\n')[2]
+    st.table(df1[df1["PLANETS"]==lord])
+    st.table(df2[df2["RASI LORD"]==lord])
+    st.table(df5[df5["Planet"]==lord])
+    st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
+    st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
 with st.expander("Antar Dasa lord"):
     adl = st.selectbox(
         '',
-        (time_period(mdl[0], mdl[1], mdl[2], tz)))
-    st.table(df1[df1["PLANETS"]==adl[2]])
-    st.table(df2[df2["RASI LORD"]==adl[2]])
-    st.table(df5[df5["Planet"]==adl[2]])
-    st.table(df3[adl[2]].replace('', float('NaN'), regex = True).dropna())
-    st.table(df4[adl[2]].replace('', float('NaN'), regex = True).dropna())
+        (time_period(mdl, tz)))
+    lord=adl.split('\n')[2]
+    st.table(df1[df1["PLANETS"]==lord])
+    st.table(df2[df2["RASI LORD"]==lord])
+    st.table(df5[df5["Planet"]==lord])
+    st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
+    st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
 with st.expander("Pratyantar Dasa lord"):
     pdl = st.selectbox(
         '',
-        (time_period(adl[0], adl[1], adl[2], tz)))
-    st.table(df1[df1["PLANETS"]==pdl[2]])
-    st.table(df2[df2["RASI LORD"]==pdl[2]])
-    st.table(df5[df5["Planet"]==pdl[2]])
-    st.table(df3[pdl[2]].replace('', float('NaN'), regex = True).dropna())
-    st.table(df4[pdl[2]].replace('', float('NaN'), regex = True).dropna())
+        (time_period(adl, tz)))
+    lord=adl.split('\n')[2]
+    st.table(df1[df1["PLANETS"]==lord])
+    st.table(df2[df2["RASI LORD"]==lord])
+    st.table(df5[df5["Planet"]==lord])
+    st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
+    st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
