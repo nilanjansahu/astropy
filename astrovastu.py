@@ -224,7 +224,7 @@ jd = local_time_to_jd(year, month, date, hour, minutes, seconds, timezone = tz)
 df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI','DEGREES', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
 col1, col2 = st.columns(2)
 
-col1.subheader('Bhaba Chart')
+col1.subheader('K.P. Lagna Chart')
 hous, asm = swe.houses_ex(jd, lat, lon, hsys = b'P',flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)
 
 h = []
@@ -256,7 +256,7 @@ col1.markdown('''<svg height="250" width="250">
   <text x="75%" y="12.5%"  font-size="80%"  text-anchor="middle">''' + h[11] + '''</text>
 </svg>''',unsafe_allow_html=True)
 
-col2.subheader('Rasi Chart')
+col2.subheader('K.P. Cusp Chart')
 h = []
 for a in hous:
     h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['RASI'] == zodiac[int(a/30)]]['PLANETS'].values]))
