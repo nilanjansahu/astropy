@@ -231,7 +231,7 @@ h = []
 for a in hous:
     h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['HOUSES'] == hous.index(a)+1]['PLANETS'].values]))
 
-col1.markdown('''<svg height="350" width="350">
+col1.markdown('''<svg height="250" width="250">
   <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="100%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="50%" y1="0%" x2="0%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
@@ -261,7 +261,7 @@ h = []
 for a in hous:
     h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['RASI'] == zodiac[int(a/30)]]['PLANETS'].values]))
 
-col2.markdown('''<svg height="350" width="350">
+col2.markdown('''<svg height="250" width="250">
   <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="100%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
   <line x1="50%" y1="0%" x2="0%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
