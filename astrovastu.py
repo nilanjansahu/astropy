@@ -307,7 +307,7 @@ t2 = swe.revjul(jd + (sublord[lord])*365.2422*(1-((moon % (360/27))/(360/27))) -
 #script
 #script
 def script_table():
-    planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Rahu', 'Ketu']
+    planets = ['Ketu', 'Venus', 'Sun', 'Moon', 'Mars', 'Rahu', 'Jupiter', 'Saturn', 'Mercury' ]
     script_tab = []
     for planet in planets:
         source = planet+' '+str(df1[df1["PLANETS"]==planet]["HOUSES"].values[0])+'/'+','.join(df2[df2['RASI LORD']==planet]["HOUSES"].values)
@@ -398,7 +398,7 @@ with st.expander("Pratyantar Dasa lord"):
     pdl = st.selectbox(
         '',
         (time_period(adl, tz)))
-    lord=adl.split('\n')[2]
+    lord=pdl.split('\n')[2]
     st.table(df1[df1["PLANETS"]==lord])
     st.table(df2[df2["RASI LORD"]==lord])
     st.table(df5[df5["Planet"]==lord])
