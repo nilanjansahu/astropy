@@ -1,3 +1,9 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 import swisseph as swe
 import streamlit as st
 import pandas as pd
@@ -5,9 +11,28 @@ import datetime
 from geopy.geocoders import Nominatim
 import random
 import string
+# Security
+# passlib,hashlib,bcrypt,scrypt
+# DB Management
+import sqlite3
+conn = sqlite3.connect('data.db')
+c = conn.cursor()
+import hashlib
 
+
+result = False
 swe.set_sid_mode(swe.SIDM_KRISHNAMURTI)
+st.set_page_config(
+        page_title="Horoscope",
+        page_icon="🖖",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
 
+st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
 zodiac = {0:'Aries', 1:'Taurus', 2:'Gemini', 3:'Cancer', 4:'Leo', 5:'Virgo', 6:'Libra', 7:'Scorpius', 8:'Sagittarius', 9:'Capricorn', 10:'Aquarius', 11:'Pisces'}
 nakshatra = {0:'Ashwini', 1:'Bharani', 2:'Krittika', 3:'Rohini', 4:'Mrigshirsha', 5:'Ardra', 6:'Punarvasu', 7:'Pushya', 8:'Ashlesha', 9:'Magha', 10:'Purvaphalguni', 11:'Uttaraphalguni', 12:'Hasta', 13:'Chitra', 14:'Swati', 15:'Vishakha', 16:'Anuradha', 17:'Jyeshtha', 18:'Mula', 19:'Purvashadha', 20:'Uttarashadha', 21:'Shravana', 22:'Dhanishtha', 23:'Shatbhisha', 24:'Poorvabhadrapada', 25:'Uttarabhadrapada', 26:'Revati'}
 zodiac_lord = {'Aries':'Mars', 'Taurus':'Venus', 'Gemini':'Mercury', 'Cancer':'Moon', 'Leo':'Sun', 'Virgo':'Mercury', 'Libra':'Venus', 'Scorpius':'Mars', 'Sagittarius':'Jupiter', 'Capricorn':'Saturn', 'Aquarius':'Saturn', 'Pisces':'Jupiter', }
@@ -100,7 +125,7 @@ def planets(jd, lat, lon):
                            nakshatra_(p),
                            nakshatra_lord_(nakshatra_(p)),
                            sub_lord_(p)
-        ])
+                           ])
     return planet_list
 
 def houses(jd, lat, lon):
@@ -117,7 +142,7 @@ def houses(jd, lat, lon):
                           nakshatra_(f),
                           nakshatra_lord_(nakshatra_(f)),
                           sub_lord_(f)
-        ])
+                          ])
     return house_list
 def aspects_planets2planets(jd):
     sun = swe.calc_ut(jd, swe.SUN, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
@@ -179,134 +204,7 @@ def time_period(inp, tz):
                     lord1]))
     return out
 
-st.set_page_config(
-        page_title="Horoscope",
-        page_icon="🖖",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-
-st.markdown(""" <style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-</style> """, unsafe_allow_html=True)
-
-d = st.sidebar.date_input("When's your birthday", datetime.date(1995, 9, 27), datetime.date(1901, 1, 1), datetime.date(2100, 1, 1))
-year = d.year
-month = d.month
-date = d.day
-lat = float(st.sidebar.text_input('latitude', '21.9320'))
-lon = float(st.sidebar.text_input('longitude', '86.7466'))
-try:
-    address = st.sidebar.text_input('City', 'Baripada')
-    letters = string.ascii_lowercase
-    a = ''.join(random.choice(letters) for i in range(10))
-
-    geolocator = Nominatim(user_agent=a)
-    location = geolocator.geocode(address)
-
-    st.sidebar.caption('Latitude '+str(location.latitude))
-    st.sidebar.caption('Longitude '+str(location.longitude))
-    lat = location.latitude
-    lon = location.longitude
-except:
-    pass
-tz = st.sidebar.slider('time zone', -24.0, 24.0, 5.5, 0.5)
-t = st.sidebar.title('When did you come to earth')
-#hour = st.sidebar.slider('Hour', 0, 24, 23, 1)
-#minutes = st.sidebar.slider('Minutes', 0, 59, 17, 1)
-#seconds = st.sidebar.slider('Seconds', 0, 59, 0, 1)'''
-hour = int(st.sidebar.text_input('Hour', 23))
-minutes = int(st.sidebar.text_input('Minutes',17))
-seconds = int(st.sidebar.text_input('Seconds',0))
-
-jd = local_time_to_jd(year, month, date, hour, minutes, seconds, timezone = tz)
-df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI','DEGREES', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
-col1, col2 = st.columns(2)
-
-col1.subheader('K.P. Lagna Chart')
-hous, asm = swe.houses_ex(jd, lat, lon, hsys = b'P',flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)
-
-h = []
-for a in hous:
-    h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['HOUSES'] == hous.index(a)+1]['PLANETS'].values]))
-
-col1.markdown('''<svg height="250" width="250">
-  <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="100%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="50%" y1="0%" x2="0%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0%" y1="50%" x2="50%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="50%" y1="100%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="50%" y1="0%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0%" y1="0%" x2="100%" y2="0%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="100%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0%" y1="100%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <text x="50%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[0] + '''</text>
-  <text x="22.5%" y="10%"  font-size="80%"  text-anchor="middle">''' + h[1] +'''</text>
-  <text x="10%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[2] + '''</text>
-  <text x="25%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[3] + '''</text>
-  <text x="10%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[4] + '''</text>
-  <text x="25%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[5] + '''</text>
-  <text x="50%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[6] + '''</text>
-  <text x="75%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[7] + '''</text>
-  <text x="87.5%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[8] + '''</text>
-  <text x="75%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[9] + '''</text>
-  <text x="87.5%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[10] + '''</text>
-  <text x="75%" y="12.5%"  font-size="80%"  text-anchor="middle">''' + h[11] + '''</text>
-</svg>''',unsafe_allow_html=True)
-
-col2.subheader('K.P. Cusp Chart')
-h = []
-for a in hous:
-    h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['RASI'] == zodiac[int(a/30)]]['PLANETS'].values]))
-
-col2.markdown('''<svg height="250" width="250">
-  <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="100%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="50%" y1="0%" x2="0%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0%" y1="50%" x2="50%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="50%" y1="100%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="50%" y1="0%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0%" y1="0%" x2="100%" y2="0%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="100%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <line x1="0%" y1="100%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
-  <text x="50%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[0] + '''</text>
-  <text x="22.5%" y="10%"  font-size="80%"  text-anchor="middle">''' + h[1] +'''</text>
-  <text x="10%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[2] + '''</text>
-  <text x="25%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[3] + '''</text>
-  <text x="10%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[4] + '''</text>
-  <text x="25%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[5] + '''</text>
-  <text x="50%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[6] + '''</text>
-  <text x="75%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[7] + '''</text>
-  <text x="87.5%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[8] + '''</text>
-  <text x="75%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[9] + '''</text>
-  <text x="87.5%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[10] + '''</text>
-  <text x="75%" y="12.5%"  font-size="80%"  text-anchor="middle">''' + h[11] + '''</text>
-</svg>''',unsafe_allow_html=True)
-
-
-st.subheader('Tables')
-
-
-df2 = pd.DataFrame(houses(jd, lat, lon), columns = ['HOUSES','RASI','DEGREES','RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
-
-df3 = pd.DataFrame(aspects_planets2houses(jd, lat, lon), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = range(1,13))
-
-df4 = pd.DataFrame(aspects_planets2planets(jd), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'])
-
-
-
-moon = swe.calc_ut(jd, swe.MOON, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
-lord = df1[df1["PLANETS"]=='Moon']["NAKSHATRA LORD"].values[0]
-
-t1 = swe.revjul(jd + (sublord[lord])*365.2422*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365.2422)
-t2 = swe.revjul(jd + (sublord[lord])*365.2422*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365.2422 + 120*365.2422)
-
-#script
-#script
-def script_table():
+def script_table(df1,df2):
     planets = ['Ketu', 'Venus', 'Sun', 'Moon', 'Mars', 'Rahu', 'Jupiter', 'Saturn', 'Mercury' ]
     script_tab = []
     for planet in planets:
@@ -360,47 +258,236 @@ def script_table():
                              result_verifier                            
         ])
     return script_tab
+ 
+def make_hashes(password):
+    return hashlib.sha256(str.encode(password)).hexdigest()
 
-expander1 = st.expander("Script Table")
-df5 = pd.DataFrame(script_table(), columns = ['Planet','Source','Star_','Additional House','Result','Verifier','result_verifier '])
-expander1.dataframe(df5)
-expander = st.expander("Reference Tables")
-expander.subheader('Houses')
-expander.table(df1)
-expander.subheader('Planets')
-expander.table(df2)
-expander.subheader('Aspects Planet to Houses')
-expander.table(df3)
-expander.subheader('Aspects Planet to Planets')
-expander.table(df4)
-st.subheader('Timeline')
-with st.expander("Maha Dasa lord"):
-    mdl = st.selectbox(
-        '',
-        (time_period('\n'.join(['-'.join(map(str,t1[0:3])),'-'.join(map(str,t2[0:3])),lord]),tz)))
-    lord=mdl.split('\n')[2]
-    st.table(df1[df1["PLANETS"]==lord])
-    st.table(df2[df2["RASI LORD"]==lord])
-    st.table(df5[df5["Planet"]==lord])
-    st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
-    st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
-with st.expander("Antar Dasa lord"):
-    adl = st.selectbox(
-        '',
-        (time_period(mdl, tz)))
-    lord=adl.split('\n')[2]
-    st.table(df1[df1["PLANETS"]==lord])
-    st.table(df2[df2["RASI LORD"]==lord])
-    st.table(df5[df5["Planet"]==lord])
-    st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
-    st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
-with st.expander("Pratyantar Dasa lord"):
-    pdl = st.selectbox(
-        '',
-        (time_period(adl, tz)))
-    lord=pdl.split('\n')[2]
-    st.table(df1[df1["PLANETS"]==lord])
-    st.table(df2[df2["RASI LORD"]==lord])
-    st.table(df5[df5["Planet"]==lord])
-    st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
-    st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
+
+def check_hashes(password, hashed_text):
+    if make_hashes(password) == hashed_text:
+        return hashed_text
+    return False
+
+
+
+
+
+
+
+# DB  Functions
+
+def create_usertable():
+    c.execute('CREATE TABLE IF NOT EXISTS userstable(username TEXT,password TEXT)'
+              )
+
+
+def add_userdata(username, password):
+    c.execute('INSERT INTO userstable(username,password) VALUES (?,?)',
+              (username, password))
+    conn.commit()
+
+
+def login_user(username, password):
+    c.execute('SELECT * FROM userstable WHERE username =? AND password = ?'
+              , (username, password))
+    data = c.fetchall()
+    return data
+
+
+def view_all_users():
+    c.execute('SELECT * FROM userstable')
+    data = c.fetchall()
+    return data
+
+def do_thing():
+    d = st.sidebar.date_input("When's your birthday", datetime.date(1995, 9, 27), datetime.date(1901, 1, 1), datetime.date(2100, 1, 1))
+    year = d.year
+    month = d.month
+    date = d.day
+    lat = float(st.sidebar.text_input('latitude', '21.9320'))
+    lon = float(st.sidebar.text_input('longitude', '86.7466'))
+    try:
+        address = st.sidebar.text_input('City', 'Baripada')
+        letters = string.ascii_lowercase
+        a = ''.join(random.choice(letters) for i in range(10))
+        geolocator = Nominatim(user_agent=a)
+        location = geolocator.geocode(address)
+        st.sidebar.caption('Latitude '+str(location.latitude))
+        st.sidebar.caption('Longitude '+str(location.longitude))
+        lat = location.latitude
+        lon = location.longitude
+    except:
+        pass
+    tz = st.sidebar.slider('time zone', -24.0, 24.0, 5.5, 0.5)
+    t = st.sidebar.title('When did you come to earth')
+    #hour = st.sidebar.slider('Hour', 0, 24, 23, 1)
+    #minutes = st.sidebar.slider('Minutes', 0, 59, 17, 1)
+    #seconds = st.sidebar.slider('Seconds', 0, 59, 0, 1)'''
+    hour = int(st.sidebar.text_input('Hour', 23))
+    minutes = int(st.sidebar.text_input('Minutes',17))
+    seconds = int(st.sidebar.text_input('Seconds',0))
+
+    jd = local_time_to_jd(year, month, date, hour, minutes, seconds, timezone = tz)
+    df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI','DEGREES', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
+    col1, col2 = st.columns(2)
+
+    col1.subheader('Bhaba Chart')
+    hous, asm = swe.houses_ex(jd, lat, lon, hsys = b'P',flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)
+
+    h = []
+    for a in hous:
+        h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['HOUSES'] == hous.index(a)+1]['PLANETS'].values]))
+
+    col1.markdown('''<svg height="350" width="350">
+    <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="100%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="50%" y1="0%" x2="0%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="0%" y1="50%" x2="50%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="50%" y1="100%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="50%" y1="0%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="0%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="0%" y1="0%" x2="100%" y2="0%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="100%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="0%" y1="100%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <text x="50%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[0] + '''</text>
+    <text x="22.5%" y="10%"  font-size="80%"  text-anchor="middle">''' + h[1] +'''</text>
+    <text x="10%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[2] + '''</text>
+    <text x="25%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[3] + '''</text>
+    <text x="10%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[4] + '''</text>
+    <text x="25%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[5] + '''</text>
+    <text x="50%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[6] + '''</text>
+    <text x="75%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[7] + '''</text>
+    <text x="87.5%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[8] + '''</text>
+    <text x="75%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[9] + '''</text>
+    <text x="87.5%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[10] + '''</text>
+    <text x="75%" y="12.5%"  font-size="80%"  text-anchor="middle">''' + h[11] + '''</text>
+    </svg>''',unsafe_allow_html=True)
+
+    col2.subheader('Rasi Chart')
+    h = []
+    for a in hous:
+        h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['RASI'] == zodiac[int(a/30)]]['PLANETS'].values]))
+
+    col2.markdown('''<svg height="350" width="350">
+    <line x1="0%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="100%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="50%" y1="0%" x2="0%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="0%" y1="50%" x2="50%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="50%" y1="100%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="50%" y1="0%" x2="100%" y2="50%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="0%" y1="0%" x2="0%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="0%" y1="0%" x2="100%" y2="0%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="100%" y1="0%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <line x1="0%" y1="100%" x2="100%" y2="100%" style="stroke:rgb(255,0,0);stroke-width:2" />
+    <text x="50%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[0] + '''</text>
+    <text x="22.5%" y="10%"  font-size="80%"  text-anchor="middle">''' + h[1] +'''</text>
+    <text x="10%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[2] + '''</text>
+    <text x="25%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[3] + '''</text>
+    <text x="10%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[4] + '''</text>
+    <text x="25%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[5] + '''</text>
+    <text x="50%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[6] + '''</text>
+    <text x="75%" y="87.5%"  font-size="80%"  text-anchor="middle">''' + h[7] + '''</text>
+    <text x="87.5%" y="75%"  font-size="80%"  text-anchor="middle">''' + h[8] + '''</text>
+    <text x="75%" y="50%"  font-size="80%"  text-anchor="middle">''' + h[9] + '''</text>
+    <text x="87.5%" y="25%"  font-size="80%"  text-anchor="middle">''' + h[10] + '''</text>
+    <text x="75%" y="12.5%"  font-size="80%"  text-anchor="middle">''' + h[11] + '''</text>
+    </svg>''',unsafe_allow_html=True)
+
+
+    st.subheader('Tables')
+    df2 = pd.DataFrame(houses(jd, lat, lon), columns = ['HOUSES','RASI','DEGREES','RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
+    df3 = pd.DataFrame(aspects_planets2houses(jd, lat, lon), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = range(1,13))
+    df4 = pd.DataFrame(aspects_planets2planets(jd), columns = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'], index = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Rahu','Ketu'])
+
+    moon = swe.calc_ut(jd, swe.MOON, flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)[0][0]
+    lord = df1[df1["PLANETS"]=='Moon']["NAKSHATRA LORD"].values[0]
+
+    t1 = swe.revjul(jd + (sublord[lord])*365.2422*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365.2422)
+    t2 = swe.revjul(jd + (sublord[lord])*365.2422*(1-((moon % (360/27))/(360/27))) - (sublord[lord])*365.2422 + 120*365.2422)
+
+
+
+    expander1 = st.expander("Script Table")
+    df5 = pd.DataFrame(script_table(df1,df2), columns = ['Planet','Source','Star_','Additional House','Result','Verifier','result_verifier '])
+    expander1.dataframe(df5)
+    expander = st.expander("Reference Tables")
+    expander.subheader('Houses')
+    expander.table(df1)
+    expander.subheader('Planets')
+    expander.table(df2)
+    expander.subheader('Aspects Planet to Houses')
+    expander.table(df3)
+    expander.subheader('Aspects Planet to Planets')
+    expander.table(df4)
+    st.subheader('Timeline')
+    with st.expander("Maha Dasa lord"):
+        mdl = st.selectbox('', (time_period('\n'.join(['-'.join(map(str,t1[0:3])),'-'.join(map(str,t2[0:3])),lord]),tz)))
+        lord=mdl.split('\n')[2]
+        st.table(df1[df1["PLANETS"]==lord])
+        st.table(df2[df2["RASI LORD"]==lord])
+        st.table(df5[df5["Planet"]==lord])
+        st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
+        st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
+    with st.expander("Antar Dasa lord"):
+        adl = st.selectbox('', (time_period(mdl, tz)))
+        lord=adl.split('\n')[2]
+        st.table(df1[df1["PLANETS"]==lord])
+        st.table(df2[df2["RASI LORD"]==lord])
+        st.table(df5[df5["Planet"]==lord])
+        st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
+        st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
+    with st.expander("Pratyantar Dasa lord"):
+        pdl = st.selectbox('', (time_period(adl, tz)))
+        lord=pdl.split('\n')[2]
+        st.table(df1[df1["PLANETS"]==lord])
+        st.table(df2[df2["RASI LORD"]==lord])
+        st.table(df5[df5["Planet"]==lord])
+        st.table(df3[lord].replace('', float('NaN'), regex = True).dropna())
+        st.table(df4[lord].replace('', float('NaN'), regex = True).dropna())
+
+def main():
+    """Simple Login App"""
+
+    st.title("""Simple Login App""")
+
+    menu = ['Home', 'Login', 'SignUp']
+    choice = st.sidebar.selectbox('Menu', menu)
+
+    if choice == 'Home':
+        st.subheader('Home')
+        hhh=str(" {}").format(result)
+        st.write(hhh)
+    elif choice == 'Login':
+
+        st.subheader('Login Section')
+
+        username = st.sidebar.text_input('User Name')
+        password = st.sidebar.text_input('Password', type='password')
+        if st.sidebar.button('Login'):
+
+            # if password == '12345':
+
+            create_usertable()
+            hashed_pswd = make_hashes(password)
+
+            result = login_user(username, check_hashes(password,
+                                hashed_pswd))
+            if result:
+                do_thing()
+            else:
+                st.warning('Incorrect Username/Password')
+    elif choice == 'SignUp':
+
+        st.subheader('Create New Account')
+        new_user = st.text_input('Username')
+        new_password = st.text_input('Password', type='password')
+
+        if st.button('Signup'):
+            create_usertable()
+            add_userdata(new_user, make_hashes(new_password))
+            st.success('You have successfully created a valid Account')
+            st.info('Go to Login Menu to login')
+
+
+if __name__ == '__main__':
+    main()
