@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 import streamlit_authenticator as stauth
@@ -372,6 +373,7 @@ if authentication_status:
 
     expander1 = st.expander("Script Table", expanded=True)
     df5 = pd.DataFrame(script_table(df1,df2), columns = ['Planet','Source','Star_','Additional House','Result','Verifier','result_verifier '])
+    df5 = pd.merge(df5, pd.DataFrame([a.split('\n')[1:3] for a in time_period('\n'.join(['-'.join(map(str,t1[0:3])),'-'.join(map(str,t2[0:3])),lord]),tz)],columns = ['MDL','Planet']), on='Planet')
     expander1.dataframe(df5)
     expander = st.expander("Reference Tables", expanded=True)
     expander.subheader('Houses')
