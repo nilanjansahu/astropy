@@ -2,10 +2,14 @@ import streamlit as st
 import streamlit_authenticator as stauth
 import pandas as pd
 import swisseph as swe
+from timezonefinder import TimezoneFinder
+import pytz
 import datetime
 from geopy.geocoders import Nominatim
 import random
 import string
+
+t_find = TimezoneFinder()
 st.set_page_config(
         page_title="Horoscope",
         page_icon="🖖",
@@ -18,9 +22,7 @@ usernames = df.username.values
 passwords = df.password.values
 
 passwords = stauth.Hasher(passwords).generate()
-print(names)
-print(usernames)
-print(passwords)
+
 authenticator = stauth.Authenticate(names,usernames, passwords, 'astro','abcd',cookie_expiry_days=30)
 
 name, authentication_status, username = authenticator.login('Login','sidebar')
@@ -262,10 +264,9 @@ footer {visibility: hidden;}
 if authentication_status:
     authenticator.logout('Logout', 'sidebar')
     st.sidebar.write('Welcome *%s*' % (name))
-    d = st.sidebar.date_input("When's your birthday", datetime.date(1995, 9, 27), datetime.date(1901, 1, 1), datetime.date(2100, 1, 1))
-    year = d.year
-    month = d.month
-    date = d.day
+    year = int(st.sidebar.text_input('year', '1995'))
+    month = int(st.sidebar.text_input('month', '9'))
+    date = int(st.sidebar.text_input('date', '27'))
     lat = float(st.sidebar.text_input('latitude', '21.9320'))
     lon = float(st.sidebar.text_input('longitude', '86.7466'))
     try:
@@ -278,9 +279,11 @@ if authentication_status:
         st.sidebar.caption('Longitude '+str(location.longitude))
         lat = location.latitude
         lon = location.longitude
+        time = pytz.timezone(t_find.timezone_at(lng=lon, lat=lat)).localize(datetime.datetime(2011, 1, 1)).strftime('%z')
+        tz = st.sidebar.slider('time zone', -12.0, 12.0, float(time[0]+str(int(time[1:3])+float(int(time[3:5])/60))), 0.5)
     except:
         pass
-    tz = st.sidebar.slider('time zone', -24.0, 24.0, 5.5, 0.5)
+    
     t = st.sidebar.title('When did you come to earth')
     #hour = st.sidebar.slider('Hour', 0, 24, 23, 1)
     #minutes = st.sidebar.slider('Minutes', 0, 59, 17, 1)
