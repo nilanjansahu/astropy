@@ -2,3 +2,4 @@ pyswisseph
 pandas
 geopy
 streamlit-authenticator
+timezonefinder
