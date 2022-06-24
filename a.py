@@ -11,7 +11,7 @@ if st.button('Add User'):
     df2 = {'name': name, 'username': username, 'password': password}
     df = df.append(df2, ignore_index = True).reset_index(drop=True)
 else:
-    st.write('Goodbye')
+    st.write('_')
 
 df.to_feather('db.feather')
 st.dataframe(df.loc[:,['name','username']])
