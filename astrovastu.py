@@ -77,7 +77,7 @@ def aspects(p1,p2):
     angle = swe.difdeg2n(p1,p2)
     deviation = 4
     if angle < deviation and p1!=p2 and angle>0:
-        return '0'
+        return 'orb'
     elif angle < (30+deviation) and angle > (30-deviation):
         return '30'
     elif angle < (45+deviation) and angle > (45-deviation):
