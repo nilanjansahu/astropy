@@ -296,7 +296,7 @@ if authentication_status:
     df1 = pd.DataFrame(planets(jd, lat, lon), columns = ['PLANETS','HOUSES','RASI','DEGREES', 'RASI LORD', 'NAKSHATRA', 'NAKSHATRA LORD', 'SUB LORD'])
     col1, col2 = st.columns(2)
 
-    col1.subheader('Bhaba Chart')
+    col1.subheader('K.P. Lagna Chart')
     hous, asm = swe.houses_ex(jd, lat, lon, hsys = b'P',flag = swe.FLG_SWIEPH + swe.FLG_SPEED + swe.FLG_SIDEREAL)
 
     h = []
@@ -328,7 +328,7 @@ if authentication_status:
     <text x="75%" y="12.5%"  font-size="80%"  text-anchor="middle">''' + h[11] + '''</text>
     </svg>''',unsafe_allow_html=True)
 
-    col2.subheader('Rasi Chart')
+    col2.subheader('K.P. Cusp Chart')
     h = []
     for a in hous:
         h.append(str(int(a/30)+1) +' ' + ' '.join([x[:2] for x in df1[df1['RASI'] == zodiac[int(a/30)]]['PLANETS'].values]))
@@ -375,7 +375,7 @@ if authentication_status:
     expander1 = st.expander("Script Table", expanded=True)
     df5 = pd.DataFrame(script_table(df1,df2), columns = ['Planet','Source','Star_','Additional House','Result','Verifier','result_verifier '])
     df5 = pd.merge(df5, pd.DataFrame([a.split('\n')[1:3] for a in time_period('\n'.join(['-'.join(map(str,t1[0:3])),'-'.join(map(str,t2[0:3])),lord]),tz)],columns = ['MDL','Planet']), on='Planet')
-    expander1.dataframe(df5)
+    expander1.table(df5)
     expander = st.expander("Reference Tables", expanded=True)
     expander.subheader('Houses')
     expander.table(df1)
