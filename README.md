@@ -1,2 +1,2 @@
 # astropy
-Streamlit svg app
+Streamlit svg astrology app
